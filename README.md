@@ -1,1 +1,71 @@
-# Dshield
+<html>
+<head>
+<title>Dshield.org</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="cnt">
+        🛡️ Dshield
+    <div sysdshield="true">open devtool and change this text </div>
+    </div>
+</body>
+<style>
+   /*add container in the middle of the screen*/
+    .cnt {
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     transform: translate(-50%, -50%);
+     width: 100%;
+     height: 100%;
+     text-align: center;
+     font-size: 20px;
+     font-family: 'Roboto', sans-serif;
+     color: #fff;
+     background-color: #000;
+     border-radius: 10px;
+     padding: 20px;
+     box-shadow: 0px 0px 10px #000;
+    }
+    .answer {
+     font-size: 20px;
+     font-family: 'Roboto', sans-serif;
+     color: #fff;
+     background-color: #000;
+     border-radius: 10px;
+     padding: 20px;
+     box-shadow: 0px 0px 10px #000;
+    }
+    .orientation {
+     font-size: 20px;
+     font-family: 'Roboto', sans-serif;
+     color: #fff;
+     background-color: #000;
+     border-radius: 10px;
+     padding: 20px;
+     box-shadow: 0px 0px 10px #000;
+    }
+
+</style>
+<script src="./console.image.min.js"></script>
+<script src="./Dshield.js" type="text/javascript"></script>
+<script>
+Dshield.start(function(){
+//get the answer span
+//randomly Dshield caution messages
+if(Dshield.isOpen){
+	var random = Math.floor(Math.random() * 3);
+	if(random==0){
+		Dshield.caution('warning');
+	}
+	else if(random==1){
+		Dshield.caution('caution');
+	}
+	else if(random==2){
+		Dshield.caution('felication');
+	}
+}
+});
+</script>
+</html>
