@@ -10,7 +10,7 @@ const Dshield={
 	data:{},
 	threshold :160,
 	start:function(callback=function(){},callback2=function(){}){
-		this.f12();
+		this.f12(callback);
 		this.firstway(callback);
 	    this.secondway(callback);
 		this.mutation(callback2);
