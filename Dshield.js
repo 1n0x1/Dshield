@@ -10,7 +10,7 @@ const Dshield={
 	data:{},
 	threshold :160,
 	start:function(callback=function(){},callback2=function(){}){
-		this.f12(callback);
+		this.f12();
 		this.firstway(callback);
 	    this.secondway(callback);
 		this.mutation(callback2);
@@ -62,7 +62,6 @@ const Dshield={
 					debugger;
 					var end = +new Date(); // Validates too.
 					if(isNaN(start) || isNaN(end) || end - start > allow) {
-						// input your code here when devtools detected.
 						Dshield.isOpen = true;
 						if(Dshield.orientation==undefined){
 							Dshield.orientation='separate';
@@ -97,31 +96,82 @@ const Dshield={
          //observe mutation for all sysDshield elements
 		var observer = new MutationObserver(function(mutations) {
 			mutations.forEach(function(mutation) {
-				if(mutation.addedNodes.length > 0) {
-					for(var i = 0; i < mutation.addedNodes.length; i++) {
-						if(mutation.addedNodes[i].nodeType === 1) {
-							if(mutation.addedNodes[i].tagName === 'sysdshield') {
-								console.log('unauthorised mutation detected');
-		                        //add in unauthorized mutation object
-								Dshield.unauthorized[mutation.addedNodes[i].id]=mutation.addedNodes[i];
-                                Dshield.organizeData(callback);
-							}
-						}
-						//detect if other elements like scipts,iframes,stylesheets are added
-						if(mutation.addedNodes[i].nodeType === 3) {
-							Dshield.unauthorized[mutation.addedNodes[i].parentElement.id]=mutation.addedNodes[i].parentElement;
-							Dshield.organizeData(callback);
-						}
-					}
-				}
+				Dshield.filter(mutation,callback);
 			});
 		}
 		);
 		observer.observe(document, {
 			subtree: true,
-			childList: true
+			childList: true,
+			attributes: true,
+			characterData: true
 		});
         }  
+		,filter:function(mutation,callback){
+			//filtrered mutation to detect unauthorised mutation
+			//detect type of mutation and get element muted
+			console.log(mutation.type);
+			if(mutation.type=='attributes'){
+				var element = mutation.target;
+				var attributeName = mutation.attributeName;
+				var attributeValue = mutation.oldValue;
+				console.log(attributeName);
+				//detect if attibute is sysdshield
+				if(attributeName=='sysdshield'){
+					//record unauthorised mutation
+					Dshield.unauthorized=attributeValue;
+				}
+			}
+			else if(mutation.type=='childList'){
+				var element = mutation.target;
+				var addedNodes = mutation.addedNodes;
+				var removedNodes = mutation.removedNodes;
+				console.log(addedNodes);
+
+				if(addedNodes.length>0){
+					for(var i=0;i<addedNodes.length;i++){
+						var addedNode = addedNodes[i];
+						if(addedNode.nodeType==1){
+						 console.log(this.scanElement(addedNode));
+						 if(this.scanElement(addedNode)){
+							Dshield.unauthorized=addedNode;
+						 }
+						 else{
+							 console.log('no injection detected');
+						 }
+							console.log('unauthorised mutation'+addedNode);
+						}
+					}
+				}
+				if(removedNodes.length>0){
+					for(var i=0;i<removedNodes.length;i++){
+						var removedNode = removedNodes[i];
+						if(removedNode.nodeType==1){
+							//removed.hasAttribute('sysdshield');
+							if(removedNode.hasAttribute('sysdshield')){
+								Dshield.unauthorized=removedNode;
+							}
+						}
+					}
+				}
+			}
+            else if(mutation.type=='characterData'){
+				var element = mutation.target;
+				var oldValue = mutation.oldValue;
+				var newValue = element.nodeValue;
+				//get the parent element of the mutated element
+				var parent = element.parentElement;
+			 //detect if element have attribute sysdshield
+				if(parent.hasAttribute('sysdshield')){
+
+				if(oldValue!=newValue){
+					Dshield.unauthorized[element.id]=true;
+					console.log('unauthorised mutation'+element);
+				}
+			}
+			}
+			Dshield.organizeData(callback);
+		}
 		,caution:function(type)	{
 			//get type of message to display 
 			const style = 'color:#AA0000; font-style: italic;font-size: 2.3em;'
@@ -154,6 +204,22 @@ const Dshield={
 			console.log("%cReport", style1);
 			const style2 = 'background-color: #00000; color: #00AA00;   font-size: 1.5em;';
 			console.log("%c‼ If you are viewing this message, you are likely a curious individual. If you encounter any errors or have suggestions, please do not hesitate to contact us👉.", style2);
+		}
+	}
+	,scanElement:function(element){
+		//detect if element is script or style or iframe
+		if(element.tagName=='SCRIPT'||element.tagName=='STYLE'||element.tagName=='IFRAME'){
+		   return true;
+		}
+		else{
+			//loop through all the child elements of the element to detect if any of them are script or style or iframe
+			var childNodes = element.childNodes;
+			for(var i=0;i<childNodes.length;i++){
+				var childNode = childNodes[i];
+				if(childNode.nodeType==1){
+					return this.scanElement(childNode);
+				}
+			}
 		}
 	}
 	//collect this data and send it to the server
